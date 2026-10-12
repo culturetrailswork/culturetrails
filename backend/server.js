@@ -223,177 +223,112 @@ app.post("/api/enquiries", async (req, res) => {
     // Send email
     // -----------------------------------------
 
-    try {
-      await transporter.sendMail({
-        from: `"${cleanName}" <${process.env.EMAIL_USER}>`,
+  
+try {
+  await transporter.sendMail({
+    from: {
+      name: cleanName,
+      address: process.env.EMAIL_USER,
+    },
 
-        to: process.env.ENQUIRY_RECEIVER,
+    to: process.env.ENQUIRY_RECEIVER,
 
-        replyTo: cleanEmail,
+    replyTo: {
+      name: cleanName,
+      address: cleanEmail,
+    },
 
-        subject,
+    subject: `New enquiry from ${cleanName} | ${subject}`,
 
-        html: `
-          <div
-            style="
-              font-family: Arial, sans-serif;
-              max-width: 650px;
-              margin: auto;
-              color: #2f2a24;
-            "
-          >
+    html: `
+      <div style="
+        font-family: Arial, sans-serif;
+        max-width: 650px;
+        margin: auto;
+        color: #2f2a24;
+      ">
+        <div style="
+          background: #2f2a24;
+          color: white;
+          padding: 30px;
+        ">
+          <h1 style="margin: 0;">Culture Trails</h1>
+          <p style="margin-bottom: 0;">New Trail Enquiry</p>
+        </div>
 
-            <div
-              style="
-                background: #2f2a24;
-                color: white;
-                padding: 30px;
-              "
-            >
+        <div style="padding: 30px;">
+          <p><strong>Enquiry ID:</strong> #${enquiryId}</p>
 
-              <h1 style="margin: 0;">
-                Culture Trails
-              </h1>
+          <hr />
 
-              <p style="margin-bottom: 0;">
-                New Trail Enquiry
-              </p>
+          <h2>Traveller</h2>
+          <p><strong>Name:</strong> ${cleanName}</p>
+          <p><strong>Email:</strong> ${cleanEmail}</p>
+          <p><strong>Mobile:</strong> ${cleanMobile}</p>
 
-            </div>
+          <hr />
 
-            <div style="padding: 30px;">
+          <h2>Journey</h2>
+          <p><strong>Destination:</strong> ${cleanDestination}</p>
+          <p><strong>Travel Date:</strong> ${cleanTravelDate}</p>
+          <p><strong>Travellers:</strong> ${cleanTravellers}</p>
+          <p><strong>Interests:</strong> ${formattedInterests}</p>
 
-              <p>
-                <strong>Enquiry ID:</strong>
-                #${enquiryId}
-              </p>
+          <hr />
 
-              <hr />
+          <h2>Message</h2>
+          <p style="
+            background: #f5f1e8;
+            padding: 20px;
+            line-height: 1.6;
+          ">
+            ${cleanMessage || "No additional message provided."}
+          </p>
 
-              <h2>Traveller</h2>
+          <hr />
 
-              <p>
-                <strong>Name:</strong>
-                ${cleanName}
-              </p>
+          <p style="font-size: 13px; color: #777;">
+            This enquiry has been saved to the Culture Trails database.
+          </p>
+        </div>
+      </div>
+    `,
 
-              <p>
-                <strong>Email:</strong>
-                ${cleanEmail}
-              </p>
-
-              <p>
-                <strong>Mobile:</strong>
-                ${cleanMobile}
-              </p>
-
-              <hr />
-
-              <h2>Journey</h2>
-
-              <p>
-                <strong>Destination:</strong>
-                ${cleanDestination}
-              </p>
-
-              <p>
-                <strong>Travel Date:</strong>
-                ${cleanTravelDate}
-              </p>
-
-              <p>
-                <strong>Travellers:</strong>
-                ${cleanTravellers}
-              </p>
-
-              <p>
-                <strong>Interests:</strong>
-                ${formattedInterests}
-              </p>
-
-              <hr />
-
-              <h2>Message</h2>
-
-              <p
-                style="
-                  background: #f5f1e8;
-                  padding: 20px;
-                  line-height: 1.6;
-                "
-              >
-                ${cleanMessage || "No additional message provided."}
-              </p>
-
-              <hr />
-
-              <p
-                style="
-                  font-size: 13px;
-                  color: #777;
-                "
-              >
-                This enquiry has been saved to the
-                Culture Trails database.
-              </p>
-
-            </div>
-
-          </div>
-        `,
-
-        text: `
+    text: `
 NEW CULTURE TRAILS ENQUIRY
 
 Enquiry ID: #${enquiryId}
 
 TRAVELLER
-
 Name: ${cleanName}
 Email: ${cleanEmail}
 Mobile: ${cleanMobile}
 
 JOURNEY
-
 Destination: ${cleanDestination}
 Travel Date: ${cleanTravelDate}
 Travellers: ${cleanTravellers}
-
-Interests:
-${formattedInterests}
+Interests: ${formattedInterests}
 
 MESSAGE
-
 ${cleanMessage || "No additional message provided."}
 
 This enquiry has been saved to the Culture Trails database.
-        `,
-      });
+    `,
+  });
 
-      console.log(
-        `📧 Enquiry #${enquiryId} email sent successfully`
-      );
+  console.log(
+    `📧 Enquiry #${enquiryId} email sent successfully`
+  );
 
-    } catch (emailError) {
+} catch (emailError) {
+  console.error(
+    `❌ Failed to send email for enquiry #${enquiryId}:`,
+    emailError
+  );
 
-      // -----------------------------------------
-      // Database succeeded but email failed
-      // -----------------------------------------
-
-      console.error(
-        `⚠️ Enquiry #${enquiryId} was saved, but email failed:`
-      );
-
-      console.error(emailError.message);
-
-      return res.status(200).json({
-        success: true,
-        message:
-          "Your enquiry has been received successfully.",
-        enquiryId,
-        emailSent: false,
-      });
-    }
+  throw emailError;
+}
 
     // -----------------------------------------
     // Success response
