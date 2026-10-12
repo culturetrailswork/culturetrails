@@ -226,19 +226,19 @@ app.post("/api/enquiries", async (req, res) => {
   
 try {
   await transporter.sendMail({
-    from: {
-      name: cleanName,
-      address: process.env.EMAIL_USER,
-    },
+  from: {
+    name: `New Enquiry — ${cleanName}`,
+    address: process.env.EMAIL_USER,
+  },
 
-    to: process.env.ENQUIRY_RECEIVER,
+  to: process.env.ENQUIRY_RECEIVER,
 
-    replyTo: {
-      name: cleanName,
-      address: cleanEmail,
-    },
+  replyTo: {
+    name: cleanName,
+    address: cleanEmail,
+  },
 
-    subject: `New enquiry from ${cleanName} | ${subject}`,
+  subject: `New enquiry from ${cleanName} | ${cleanDestination}`,
 
     html: `
       <div style="
